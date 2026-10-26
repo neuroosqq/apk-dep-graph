@@ -1,28 +1,31 @@
 """Точка входа приложения."""
 import sys
-from dataclasses import asdict
 
+from src.apk_repo import ApkRepository
 from src.cli import parse_config
-from src.errors import AppError
+from src.errors import AppError, RepoError
 
 EXIT_OK = 0
 EXIT_ERROR = 1
 
 
-def print_config(config):
-    """Вывести параметры в формате ключ-значение (только этап 1)."""
-    for key, value in asdict(config).items():
-        print(f"{key}: {value}")
+def run(config):
+    """Вывести прямые зависимости пакета (только этап 2)."""
+    repo = ApkRepository.from_url(config.repo)
+    if not repo.has_package(config.package):
+        raise RepoError(f"пакет {config.package!r} не найден")
+    print(f"Прямые зависимости пакета {config.package}:")
+    for dep in repo.dependencies(config.package):
+        print(f"  {dep}")
 
 
 def main(argv=None):
     """Запустить приложение и вернуть код завершения."""
     try:
-        config = parse_config(argv)
+        run(parse_config(argv))
     except AppError as error:
         print(f"Ошибка: {error}", file=sys.stderr)
         return EXIT_ERROR
-    print_config(config)
     return EXIT_OK
 
 
