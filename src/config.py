@@ -11,3 +11,4 @@ class Config:
     test_mode: bool
     ascii_tree: bool
     filter_substr: str
+    reverse: bool

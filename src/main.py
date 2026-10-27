@@ -1,6 +1,6 @@
 """Точка входа приложения."""
 import sys
-
+from src.reverse import build_reverse_graph
 from src.apk_repo import ApkRepository
 from src.cli import parse_config
 from src.errors import AppError, RepoError
@@ -34,14 +34,25 @@ def print_cycles(cycles):
         print("  " + " -> ".join(cycle))
 
 
+def build_result_graph(config, repo):
+    """Построить прямой или обратный граф зависимостей."""
+    if config.reverse:
+        return build_reverse_graph(
+            repo, config.package, config.filter_substr
+        )
+    return build_graph(
+        config.package, repo.dependencies, config.filter_substr
+    )
+
+
 def run(config):
     """Построить и вывести граф зависимостей."""
     repo = open_repository(config)
     if not repo.has_package(config.package):
         raise RepoError(f"пакет {config.package!r} не найден")
-    graph, cycles = build_graph(
-        config.package, repo.dependencies, config.filter_substr
-    )
+    graph, cycles = build_result_graph(config, repo)
+    title = "Обратные зависимости" if config.reverse else "Зависимости"
+    print(f"{title} пакета {config.package}:")
     print_graph(graph)
     print_cycles(cycles)
 

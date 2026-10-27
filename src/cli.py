@@ -33,10 +33,9 @@ def add_input_options(parser):
 
 
 def add_output_options(parser):
-    """Добавить параметры вывода."""
     parser.add_argument(
-        "-a", "--ascii-tree", action="store_true",
-        help="вывести зависимости в виде ASCII-дерева",
+        "--reverse", action="store_true",
+        help="вывести обратные зависимости (кто зависит от пакета)",
     )
 
 
@@ -100,3 +99,4 @@ def parse_config(argv=None):
     validate_repo(args.repo, args.test_mode)
     validate_filter(args.filter_substr, args.package)
     return Config(**vars(args))
+
