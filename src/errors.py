@@ -10,3 +10,6 @@ class ConfigError(AppError):
 
 class RepoError(AppError):
     """Ошибка получения или разбора данных репозитория."""
+
+class RenderError(AppError):
+    """Ошибка построения изображения графа."""
