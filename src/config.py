@@ -12,3 +12,6 @@ class Config:
     ascii_tree: bool
     filter_substr: str
     reverse: bool
+    d2_file: str
+    image: str
+    no_image: bool

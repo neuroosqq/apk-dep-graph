@@ -1,11 +1,15 @@
 """Точка входа приложения."""
 import sys
-from src.reverse import build_reverse_graph
+
 from src.apk_repo import ApkRepository
+from src.ascii_tree import TreePrinter
 from src.cli import parse_config
+from src.d2_export import to_d2
 from src.errors import AppError, RepoError
 from src.file_repo import FileRepository
 from src.graph import build_graph
+from src.renderer import render_image, show_image
+from src.reverse import build_reverse_graph
 
 EXIT_OK = 0
 EXIT_ERROR = 1
@@ -17,6 +21,17 @@ def open_repository(config):
     if config.test_mode:
         return FileRepository.from_file(config.repo)
     return ApkRepository.from_url(config.repo)
+
+
+def build_result_graph(config, repo):
+    """Построить прямой или обратный граф зависимостей."""
+    if config.reverse:
+        return build_reverse_graph(
+            repo, config.package, config.filter_substr
+        )
+    return build_graph(
+        config.package, repo.dependencies, config.filter_substr
+    )
 
 
 def print_graph(graph):
@@ -34,27 +49,35 @@ def print_cycles(cycles):
         print("  " + " -> ".join(cycle))
 
 
-def build_result_graph(config, repo):
-    """Построить прямой или обратный граф зависимостей."""
-    if config.reverse:
-        return build_reverse_graph(
-            repo, config.package, config.filter_substr
-        )
-    return build_graph(
-        config.package, repo.dependencies, config.filter_substr
-    )
+def report(config, graph, cycles):
+    """Вывести результат в текстовом виде."""
+    title = "Обратные зависимости" if config.reverse else "Зависимости"
+    print(f"{title} пакета {config.package}:")
+    if config.ascii_tree:
+        print(TreePrinter(graph).render(config.package))
+    else:
+        print_graph(graph)
+    print_cycles(cycles)
+
+
+def visualize(config, graph):
+    """Сохранить текст D2 и показать изображение графа."""
+    with open(config.d2_file, "w", encoding="utf-8") as out:
+        out.write(to_d2(graph, config.package))
+    if config.no_image:
+        return
+    render_image(config.d2_file, config.image)
+    show_image(config.image)
 
 
 def run(config):
-    """Построить и вывести граф зависимостей."""
+    """Выполнить анализ и визуализацию."""
     repo = open_repository(config)
     if not repo.has_package(config.package):
         raise RepoError(f"пакет {config.package!r} не найден")
     graph, cycles = build_result_graph(config, repo)
-    title = "Обратные зависимости" if config.reverse else "Зависимости"
-    print(f"{title} пакета {config.package}:")
-    print_graph(graph)
-    print_cycles(cycles)
+    report(config, graph, cycles)
+    visualize(config, graph)
 
 
 def main(argv=None):

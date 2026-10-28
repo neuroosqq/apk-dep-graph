@@ -37,6 +37,18 @@ def add_output_options(parser):
         "--reverse", action="store_true",
         help="вывести обратные зависимости (кто зависит от пакета)",
     )
+    parser.add_argument(
+        "--d2-file", default="graph.d2",
+        help="куда сохранить текст диаграммы D2",
+    )
+    parser.add_argument(
+        "--image", default="graph.svg",
+        help="куда сохранить изображение графа",
+    )
+    parser.add_argument(
+        "--no-image", action="store_true",
+        help="только сохранить .d2, не строить изображение",
+    )
 
 
 def build_parser():
